@@ -741,18 +741,18 @@ impl CompileFilter {
     pub fn need_dev_deps(&self, mode: CompileMode) -> bool {
         match mode {
             CompileMode::Test | CompileMode::Doctest | CompileMode::Bench => true,
-            CompileMode::Check { test: true } => true,
-            CompileMode::Build | CompileMode::Doc { .. } | CompileMode::Check { test: false } => {
-                match *self {
-                    CompileFilter::Default { .. } => false,
-                    CompileFilter::Only {
-                        ref examples,
-                        ref tests,
-                        ref benches,
-                        ..
-                    } => examples.is_specific() || tests.is_specific() || benches.is_specific(),
-                }
-            }
+            CompileMode::Check { test: true, .. } => true,
+            CompileMode::Build
+            | CompileMode::Doc { .. }
+            | CompileMode::Check { test: false, .. } => match *self {
+                CompileFilter::Default { .. } => false,
+                CompileFilter::Only {
+                    ref examples,
+                    ref tests,
+                    ref benches,
+                    ..
+                } => examples.is_specific() || tests.is_specific() || benches.is_specific(),
+            },
             CompileMode::RunCustomBuild => panic!("Invalid mode"),
         }
     }
@@ -1039,7 +1039,10 @@ fn generate_targets(
             };
             let test_mode = match mode {
                 CompileMode::Build => CompileMode::Test,
-                CompileMode::Check { .. } => CompileMode::Check { test: true },
+                CompileMode::Check { rustc_check, .. } => CompileMode::Check {
+                    test: true,
+                    rustc_check,
+                },
                 _ => mode,
             };
             // If `--benches` was specified, add all targets that would be
@@ -1050,7 +1053,10 @@ fn generate_targets(
             };
             let bench_mode = match mode {
                 CompileMode::Build => CompileMode::Bench,
-                CompileMode::Check { .. } => CompileMode::Check { test: true },
+                CompileMode::Check { rustc_check, .. } => CompileMode::Check {
+                    test: true,
+                    rustc_check,
+                },
                 _ => mode,
             };
 

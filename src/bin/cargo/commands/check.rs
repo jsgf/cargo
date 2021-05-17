@@ -53,7 +53,10 @@ pub fn exec(config: &mut Config, args: &ArgMatches<'_>) -> CliResult {
             return Err(CliError::new(err, 101));
         }
     };
-    let mode = CompileMode::Check { test };
+    let mode = CompileMode::Check {
+        test,
+        rustc_check: config.cli_unstable().rustc_check,
+    };
     let compile_opts = args.compile_options(config, mode, Some(&ws), ProfileChecking::Unchecked)?;
 
     ops::compile(&ws, &compile_opts)?;

@@ -50,7 +50,10 @@ pub fn exec(config: &mut Config, args: &ArgMatches<'_>) -> CliResult {
         Some("dev") | None => CompileMode::Build,
         Some("test") => CompileMode::Test,
         Some("bench") => CompileMode::Bench,
-        Some("check") => CompileMode::Check { test: false },
+        Some("check") => CompileMode::Check {
+            test: false,
+            rustc_check: config.cli_unstable().rustc_check,
+        },
         Some(mode) => {
             let err = anyhow::format_err!(
                 "unknown profile: `{}`, use dev,

@@ -553,15 +553,18 @@ fn dep_build_script(
 /// Choose the correct mode for dependencies.
 fn check_or_build_mode(mode: CompileMode, target: &Target) -> CompileMode {
     match mode {
-        CompileMode::Check { .. } | CompileMode::Doc { .. } => {
-            if target.for_host() {
-                // Plugin and proc macro targets should be compiled like
-                // normal.
-                CompileMode::Build
-            } else {
-                // Regular dependencies should not be checked with --test.
-                // Regular dependencies of doc targets should emit rmeta only.
-                CompileMode::Check { test: false }
+        CompileMode::Check { rustc_check, .. } if !target.for_host() => {
+            // Regular dependencies should not be checked with --test.
+            CompileMode::Check {
+                test: false,
+                rustc_check,
+            }
+        }
+        CompileMode::Doc { .. } if !target.for_host() => {
+            // Regular dependencies of doc targets should emit rmeta only.
+            CompileMode::Check {
+                test: false,
+                rustc_check: false,
             }
         }
         _ => CompileMode::Build,

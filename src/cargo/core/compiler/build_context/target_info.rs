@@ -61,6 +61,8 @@ pub enum FileFlavor {
     Linkable,
     /// An `.rmeta` Rust metadata file.
     Rmeta,
+    /// An `.rcheck` Rust metadata file. Like rmeta, but only ever useful for check.
+    Rcheck,
     /// Piece of external debug information (e.g., `.dSYM`/`.pdb` file).
     DebugInfo,
 }
@@ -118,6 +120,18 @@ impl FileType {
             flavor: FileFlavor::Rmeta,
             crate_type: None,
             suffix: ".rmeta".to_string(),
+            prefix: "lib".to_string(),
+            should_replace_hyphens: true,
+        }
+    }
+
+    /// Creates a new instance representing a `.rcheck` file.
+    pub fn new_rcheck() -> FileType {
+        // Note that even binaries use the `lib` prefix.
+        FileType {
+            flavor: FileFlavor::Rcheck,
+            crate_type: None,
+            suffix: ".rcheck".to_string(),
             prefix: "lib".to_string(),
             should_replace_hyphens: true,
         }
@@ -444,7 +458,14 @@ impl TargetInfo {
                     None => Ok((Vec::new(), vec![CrateType::Bin])),
                 }
             }
-            CompileMode::Check { .. } => Ok((vec![FileType::new_rmeta()], Vec::new())),
+            CompileMode::Check { rustc_check, .. } => {
+                let flav = if rustc_check {
+                    FileType::new_rcheck()
+                } else {
+                    FileType::new_rmeta()
+                };
+                Ok((vec![flav], Vec::new()))
+            }
             CompileMode::Doc { .. } | CompileMode::Doctest | CompileMode::RunCustomBuild => {
                 panic!("asked for rustc output for non-rustc mode")
             }

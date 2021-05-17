@@ -601,6 +601,7 @@ unstable_cli_options!(
     no_index_update: bool = ("Do not update the registry index even if the cache is outdated"),
     panic_abort_tests: bool = ("Enable support to run tests with -Cpanic=abort"),
     patch_in_config: bool = ("Allow `[patch]` sections in .cargo/config.toml files"),
+    rustc_check: bool = ("Use rustc's `--emit check` for check builds"),
     rustdoc_map: bool = ("Allow passing external documentation mappings to rustdoc"),
     separate_nightlies: bool = (HIDDEN),
     terminal_width: Option<Option<usize>>  = ("Provide a terminal width to rustc for error truncation"),
@@ -811,6 +812,7 @@ impl CliUnstable {
             }
             "separate-nightlies" => self.separate_nightlies = parse_empty(k, v)?,
             "multitarget" => self.multitarget = parse_empty(k, v)?,
+            "rustc-check" => self.rustc_check = parse_empty(k, v)?,
             "rustdoc-map" => self.rustdoc_map = parse_empty(k, v)?,
             "terminal-width" => self.terminal_width = Some(parse_usize_opt(v)?),
             "namespaced-features" => self.namespaced_features = parse_empty(k, v)?,

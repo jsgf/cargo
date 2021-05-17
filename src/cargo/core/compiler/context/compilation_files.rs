@@ -349,7 +349,10 @@ impl<'a, 'cfg: 'a> CompilationFiles<'a, 'cfg> {
     /// dependent rlib).
     fn uplift_to(&self, unit: &Unit, file_type: &FileType, from_path: &Path) -> Option<PathBuf> {
         // Tests, check, doc, etc. should not be uplifted.
-        if unit.mode != CompileMode::Build || file_type.flavor == FileFlavor::Rmeta {
+        if unit.mode != CompileMode::Build
+            || file_type.flavor == FileFlavor::Rmeta
+            || file_type.flavor == FileFlavor::Rcheck
+        {
             return None;
         }
         // Only uplift:

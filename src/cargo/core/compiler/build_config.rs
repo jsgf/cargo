@@ -132,10 +132,10 @@ pub enum CompileMode {
     Test,
     /// Building a target with `rustc` (lib or bin).
     Build,
-    /// Building a target with `rustc` to emit `rmeta` metadata only. If
+    /// Building a target with `rustc` to emit `rcheck` metadata only. If
     /// `test` is true, then it is also compiled with `--test` to check it like
     /// a test.
-    Check { test: bool },
+    Check { test: bool, rustc_check: bool },
     /// Used to indicate benchmarks should be built. This is not used in
     /// `Unit`, because it is essentially the same as `Test` (indicating
     /// `--test` should be passed to rustc) and by using `Test` instead it
@@ -174,6 +174,14 @@ impl CompileMode {
         matches!(self, CompileMode::Check { .. })
     }
 
+    /// Use --emit check (vs metadata)
+    pub fn is_rustc_check(self) -> Option<bool> {
+        match self {
+            CompileMode::Check { rustc_check, .. } => Some(rustc_check),
+            _ => None,
+        }
+    }
+
     /// Returns `true` if this is generating documentation.
     pub fn is_doc(self) -> bool {
         matches!(self, CompileMode::Doc { .. })
@@ -191,7 +199,7 @@ impl CompileMode {
             self,
             CompileMode::Test
                 | CompileMode::Bench
-                | CompileMode::Check { test: true }
+                | CompileMode::Check { test: true, .. }
                 | CompileMode::Doctest
         )
     }
@@ -200,7 +208,7 @@ impl CompileMode {
     pub fn is_rustc_test(self) -> bool {
         matches!(
             self,
-            CompileMode::Test | CompileMode::Bench | CompileMode::Check { test: true }
+            CompileMode::Test | CompileMode::Bench | CompileMode::Check { test: true, .. }
         )
     }
 

@@ -809,8 +809,12 @@ fn build_base_args(
         }
     }
 
-    if unit.mode.is_check() {
-        cmd.arg("--emit=dep-info,metadata");
+    if let Some(rustc_check) = unit.mode.is_rustc_check() {
+        if rustc_check {
+            cmd.arg("--emit=dep-info,check");
+        } else {
+            cmd.arg("--emit=dep-info,metadata");
+        }
     } else if !unit.requires_upstream_objects() {
         // Always produce metadata files for rlib outputs. Metadata may be used
         // in this session for a pipelined compilation, or it may be used in a
@@ -1105,12 +1109,23 @@ pub fn extern_args(
 
             let outputs = cx.outputs(&dep.unit)?;
 
-            if cx.only_requires_rmeta(unit, &dep.unit) || dep.unit.mode.is_check() {
+            if cx.only_requires_rmeta(unit, &dep.unit) {
                 // Example: rlib dependency for an rlib, rmeta is all that is required.
                 let output = outputs
                     .iter()
                     .find(|output| output.flavor == FileFlavor::Rmeta)
                     .expect("failed to find rmeta dep for pipelined dep");
+                pass(&output.path);
+            } else if let Some(rustc_check) = dep.unit.mode.is_rustc_check() {
+                let flav = if rustc_check {
+                    FileFlavor::Rcheck
+                } else {
+                    FileFlavor::Rmeta
+                };
+                let output = outputs
+                    .iter()
+                    .find(|output| output.flavor == flav)
+                    .expect("failed to find rmeta/rcheck dep for check dep");
                 pass(&output.path);
             } else {
                 // Example: a bin needs `rlib` for dependencies, it cannot use rmeta.
